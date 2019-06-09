@@ -1,18 +1,17 @@
 package gigaherz.itemsdontbreak;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.EntityPlayerSP;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.util.ITooltipFlag;
+import net.minecraft.client.entity.player.ClientPlayerEntity;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.init.Enchantments;
-import net.minecraft.item.ItemArmor;
+import net.minecraft.enchantment.Enchantments;
+import net.minecraft.item.ArmorItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
@@ -23,7 +22,6 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.List;
-import java.util.Random;
 
 @Mod(ItemsDontBreak.MODID)
 public class ItemsDontBreak
@@ -35,7 +33,7 @@ public class ItemsDontBreak
     {
         private static boolean isAboutToBreak(ItemStack stack)
         {
-            return stack.isDamageable() && (stack.getDamage()+1) >= stack.getMaxDamage() && (!GuiScreen.isCtrlKeyDown());
+            return stack.isDamageable() && (stack.getDamage()+1) >= stack.getMaxDamage() && (!Screen.hasControlDown());
         }
 
         private static ItemStack previousStack = ItemStack.EMPTY;
@@ -49,12 +47,10 @@ public class ItemsDontBreak
             // others: [50%,33%,25%,...] chance
 
             double chance = 1.0/(unbreaking+1);
-            if (stack.getItem() instanceof ItemArmor)
+            if (stack.getItem() instanceof ArmorItem)
             {
                 chance *= 0.4;
             }
-
-            double chance_damaged = 1 - chance;
 
             double durability_coef = 1 / chance;
 
@@ -66,7 +62,7 @@ public class ItemsDontBreak
         {
             if(event.phase == TickEvent.Phase.END)
             {
-                EntityPlayerSP player = Minecraft.getInstance().player;
+                ClientPlayerEntity player = Minecraft.getInstance().player;
                 if (player == null || player.isCreative())
                     return;
 
@@ -82,9 +78,19 @@ public class ItemsDontBreak
 
                         if(remaining <= 10 && uses <= 20)
                         {
-                            TextComponentTranslation tc = isAboutToBreak(stack) ?
-                                    new TextComponentTranslation("text.itemsdontbreak.item_info_disabled", remaining)
-                                    : new TextComponentTranslation("text.itemsdontbreak.item_info", remaining, uses);
+                            TranslationTextComponent tc;
+                            if (isAboutToBreak(stack))
+                            {
+                                tc = new TranslationTextComponent("text.itemsdontbreak.item_info_disabled", remaining);
+                            }
+                            else if (EnchantmentHelper.getEnchantmentLevel(Enchantments.UNBREAKING, stack) > 0)
+                            {
+                                tc = new TranslationTextComponent("text.itemsdontbreak.item_info.unbreaking", remaining, uses);
+                            }
+                            else
+                            {
+                                tc = new TranslationTextComponent("text.itemsdontbreak.item_info.normal", remaining, uses);
+                            }
 
                             Minecraft.getInstance().ingameGUI.setOverlayMessage(
                                     tc,
@@ -121,7 +127,7 @@ public class ItemsDontBreak
         }
 
         @SubscribeEvent
-        public static void itemInteractEvent(ItemTooltipEvent event)
+        public static void tooltipEvent(ItemTooltipEvent event)
         {
             ItemStack stack = event.getItemStack();
             if (stack.getItem().isDamageable())
@@ -132,7 +138,7 @@ public class ItemsDontBreak
                 {
                     int insert = Math.min(tips.size(),1);
 
-                    TextComponentTranslation br = new TextComponentTranslation("tooltip.itemsdontbreak.item_broken");
+                    TranslationTextComponent br = new TranslationTextComponent("tooltip.itemsdontbreak.item_broken");
                     br.applyTextStyles(TextFormatting.RED, TextFormatting.BOLD, TextFormatting.ITALIC);
                     event.getToolTip().add(insert, br);
                 }
@@ -143,9 +149,9 @@ public class ItemsDontBreak
                     for(int i=0;i<tips.size();i++)
                     {
                         ITextComponent t = tips.get(i);
-                        if (t instanceof TextComponentTranslation)
+                        if (t instanceof TranslationTextComponent)
                         {
-                            TextComponentTranslation tt = (TextComponentTranslation)t;
+                            TranslationTextComponent tt = (TranslationTextComponent)t;
                             if ("item.durability".equals(tt.getKey()))
                             {
                                 insert = i+1;
@@ -167,12 +173,12 @@ public class ItemsDontBreak
 
                     int remaining = stack.getMaxDamage() - stack.getDamage();
 
-                    ITextComponent uses = new TextComponentTranslation("tooltip.itemsdontbreak.item_info", adjustedDurability(stack, remaining));
+                    ITextComponent uses = new TranslationTextComponent("tooltip.itemsdontbreak.item_info", adjustedDurability(stack, remaining));
                     uses.applyTextStyles(TextFormatting.ITALIC, TextFormatting.GRAY);
 
                     if (indent)
                     {
-                        TextComponentString ts = new TextComponentString(" ");
+                        StringTextComponent ts = new StringTextComponent(" ");
                         ts.appendSibling(uses);
                         uses = ts;
                     }
