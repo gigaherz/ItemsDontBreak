@@ -92,10 +92,7 @@ public class ItemsDontBreak
                                 tc = new TranslationTextComponent("text.itemsdontbreak.item_info.normal", remaining, uses);
                             }
 
-                            Minecraft.getInstance().ingameGUI.setOverlayMessage(
-                                    tc,
-                                    false
-                            );
+                            Minecraft.getInstance().ingameGUI.setOverlayMessage(tc,false);
                         }
                     }
                 }
