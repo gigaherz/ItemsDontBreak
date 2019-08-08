@@ -13,13 +13,13 @@ import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.List;
 
@@ -37,7 +37,6 @@ public class ItemsDontBreak
         }
 
         private static ItemStack previousStack = ItemStack.EMPTY;
-
 
         public static int adjustedDurability(ItemStack stack, int remaining)
         {
