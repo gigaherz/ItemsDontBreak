@@ -1,0 +1,7 @@
+{
+    "tooltip.itemsdontbreak.item_broken": "已损坏!",
+    "tooltip.itemsdontbreak.item_info": "大约剩余 %d 次使用",
+    "text.itemsdontbreak.item_info.normal": "耐久：%d ",
+    "text.itemsdontbreak.item_info.unbreaking": "耐久：%d (大约剩余 %d 次使用)",
+    "text.itemsdontbreak.item_info_disabled": "耐久：%d (不可用)"
+}
