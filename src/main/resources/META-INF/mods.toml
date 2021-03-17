@@ -1,30 +1,31 @@
-modLoader="javafml" #mandatory
-loaderVersion="[25,)" #mandatory (24 is current forge version)
-issueTrackerURL="https://github.com/gigaherz/ItemsDontBreak/issues" #optional
+modLoader="javafml"
+loaderVersion="[33,)"
+license="BSD (3 clause)"
 
 [[mods]] #mandatory
-modId="itemsdontbreak" #mandatory
-version="${version}" #mandatory
-displayName="Items Don't Break" #mandatory
-#updateJSONURL="http://myurl.me/" #optional
-displayURL="https://github.com/gigaherz/ItemsDontBreak" #optional
-logoFile="logo.png" #optional
-credits="Thanks for this example mod goes to Java" #optional
-authors="gigaherz" #optional
+modId="itemsdontbreak"
+version="${file.jarVersion}"
+displayName="Items Don't Break"
+logoFile="logo.png"
+credits="Thanks for this example mod goes to Java"
+authors="gigaherz"
 description='''
 Warns of remaining item uses, and prevents using an item when it reaches 0 durability
 '''
+displayURL="https://github.com/gigaherz/ItemsDontBreak"
+issueTrackerURL="https://github.com/gigaherz/ItemsDontBreak/issues"
+#updateJSONURL="http://myurl.me/" #optional
 
-[[dependencies.examplemod]] #optional
+[[dependencies.itemsdontbreak]] #optional
     modId="forge" #mandatory
     mandatory=true #mandatory
-    versionRange="[25,)" #mandatory
+    versionRange="[33.0,)" #mandatory
     ordering="NONE"
     side="BOTH"
 
-[[dependencies.examplemod]]
+[[dependencies.itemsdontbreak]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.13.2,1.14.0)"
+    versionRange="[1.16.2,1.17)"
     ordering="NONE"
     side="BOTH"
