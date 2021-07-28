@@ -4,7 +4,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
     }
 }
 apply plugin: 'net.minecraftforge.gradle'
@@ -28,10 +28,10 @@ project.afterEvaluate {
     archivesBaseName = "ItemsDontBreak-${project.MC_VERSION}"
 }
 
-sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
+java.toolchain.languageVersion = JavaLanguageVersion.of(16)
 
-minecraft {
-    mappings channel: 'snapshot', version: '20200916-1.16.2'
+minecraft {mappings channel: 'official', version: '1.17.1'
+
 
     runs {
         client {
@@ -67,7 +67,7 @@ minecraft {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.16.5-36.1.0'
+    minecraft 'net.minecraftforge:forge:1.17.1-37.0.13'
 }
 
 jar {
