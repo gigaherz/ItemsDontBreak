@@ -1,43 +1,43 @@
 package gigaherz.itemsdontbreak;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.enchantment.Enchantments;
-import net.minecraft.item.ArmorItem;
+import net.minecraft.init.Enchantments;
+import net.minecraft.inventory.EntityEquipmentSlot;
+import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.Event;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.Event;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraftforge.fml.relauncher.Side;
 
 import java.util.List;
 
-@Mod(ItemsDontBreak.MODID)
+@Mod.EventBusSubscriber
+@Mod(modid = ItemsDontBreak.MODID)
 public class ItemsDontBreak
 {
     public static final String MODID = "itemsdontbreak";
 
-    @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+    @Mod.EventBusSubscriber(value = Side.CLIENT, modid = ItemsDontBreak.MODID)
     public static class ClientEvents
     {
         private static boolean isAboutToBreak(ItemStack stack)
         {
-            return stack.isDamageable() && (stack.getDamage()+1) >= stack.getMaxDamage() && (!Screen.hasControlDown());
+            return stack.isItemStackDamageable() && (stack.getItemDamage()+1) >= stack.getMaxDamage() && (!GuiScreen.isCtrlKeyDown());
         }
 
         private static ItemStack previousStack = ItemStack.EMPTY;
-
 
         public static int adjustedDurability(ItemStack stack, int remaining)
         {
@@ -47,7 +47,7 @@ public class ItemsDontBreak
             // others: [50%,33%,25%,...] chance
 
             double chance = 1.0/(unbreaking+1);
-            if (stack.getItem() instanceof ArmorItem)
+            if (stack.getItem() instanceof ItemArmor)
             {
                 chance *= 0.4;
             }
@@ -62,7 +62,7 @@ public class ItemsDontBreak
         {
             if(event.phase == TickEvent.Phase.END)
             {
-                ClientPlayerEntity player = Minecraft.getInstance().player;
+                EntityPlayerSP player = Minecraft.getMinecraft().player;
                 if (player == null || player.isCreative())
                     return;
 
@@ -71,28 +71,28 @@ public class ItemsDontBreak
                 if (!ItemStack.areItemStacksEqual(previousStack, stack))
                 {
                     previousStack = stack;
-                    if (stack.isDamageable())
+                    if (stack.isItemStackDamageable())
                     {
-                        int remaining = stack.getMaxDamage() - stack.getDamage();
+                        int remaining = stack.getMaxDamage() - stack.getItemDamage();
                         int uses = adjustedDurability(stack, remaining);
 
                         if(remaining <= 10 && uses <= 20)
                         {
-                            TranslationTextComponent tc;
+                            TextComponentTranslation tc;
                             if (isAboutToBreak(stack))
                             {
-                                tc = new TranslationTextComponent("text.itemsdontbreak.item_info_disabled", remaining);
+                                tc = new TextComponentTranslation("text.itemsdontbreak.item_info_disabled", remaining);
                             }
                             else if (EnchantmentHelper.getEnchantmentLevel(Enchantments.UNBREAKING, stack) > 0)
                             {
-                                tc = new TranslationTextComponent("text.itemsdontbreak.item_info.unbreaking", remaining, uses);
+                                tc = new TextComponentTranslation("text.itemsdontbreak.item_info.unbreaking", remaining, uses);
                             }
                             else
                             {
-                                tc = new TranslationTextComponent("text.itemsdontbreak.item_info.normal", remaining, uses);
+                                tc = new TextComponentTranslation("text.itemsdontbreak.item_info.normal", remaining, uses);
                             }
 
-                            Minecraft.getInstance().ingameGUI.setOverlayMessage(tc,false);
+                            Minecraft.getMinecraft().ingameGUI.setOverlayMessage(tc,false);
                         }
                     }
                 }
@@ -129,57 +129,62 @@ public class ItemsDontBreak
             ItemStack stack = event.getItemStack();
             if (stack.getItem().isDamageable())
             {
-                List<ITextComponent> tips = event.getToolTip();
+                List<String> tips = event.getToolTip();
 
                 if (isAboutToBreak(stack))
                 {
                     int insert = Math.min(tips.size(),1);
 
-                    TranslationTextComponent br = new TranslationTextComponent("tooltip.itemsdontbreak.item_broken");
-                    br.applyTextStyles(TextFormatting.RED, TextFormatting.BOLD, TextFormatting.ITALIC);
-                    event.getToolTip().add(insert, br);
+                    TextComponentTranslation br = new TextComponentTranslation("tooltip.itemsdontbreak.item_broken");
+                    br.getStyle().setColor(TextFormatting.RED).setBold(true).setItalic(true);
+                    event.getToolTip().add(insert, br.getFormattedText());
                 }
                 else //if (event.getFlags() == ITooltipFlag.TooltipFlags.ADVANCED)
                 {
                     boolean indent = false;
                     int insert = tips.size();
-                    for(int i=0;i<tips.size();i++)
+
+                    if (stack.isItemDamaged())
                     {
-                        ITextComponent t = tips.get(i);
-                        if (t instanceof TranslationTextComponent)
+                        String str = I18n.format("item.durability", stack.getMaxDamage() - stack.getItemDamage(), stack.getMaxDamage());
+                        for(int i=0;i<tips.size();i++)
                         {
-                            TranslationTextComponent tt = (TranslationTextComponent)t;
-                            if ("item.durability".equals(tt.getKey()))
+                            String t = tips.get(i);
+                            if (str.equals(t))
                             {
-                                insert = i+1;
+                                insert = i+1; // insert after this
                                 indent = true;
                                 break;
                             }
-                            else if ("item.modifiers.mainhand".equals(tt.getKey()))
+                        }
+                    }
+                    if (!indent)
+                    {
+                        for (int i = 0; i < tips.size(); i++)
+                        {
+                            String t = tips.get(i);
+                            for (EntityEquipmentSlot slot : EntityEquipmentSlot.values())
                             {
-                                insert = Math.min(insert, i);
-                                indent = false;
-                            }
-                            else if ("item.modifiers.offhand".equals(tt.getKey()))
-                            {
-                                insert = Math.min(insert, i);
-                                indent = false;
+                                String str = I18n.format("item.modifiers." + slot.getName());
+                                if (str.equals(t))
+                                {
+                                    insert = i; // insert before this
+                                    break;
+                                }
                             }
                         }
                     }
 
-                    int remaining = stack.getMaxDamage() - stack.getDamage();
+                    int remaining = stack.getMaxDamage() - stack.getItemDamage();
 
-                    ITextComponent uses = new TranslationTextComponent("tooltip.itemsdontbreak.item_info", adjustedDurability(stack, remaining));
-                    uses.applyTextStyles(TextFormatting.ITALIC, TextFormatting.GRAY);
+                    StringBuilder bld = new StringBuilder();
+                    bld.append(TextFormatting.GRAY);
+                    bld.append(TextFormatting.ITALIC);
+                    if (indent) bld.append(" ");
 
-                    if (indent)
-                    {
-                        StringTextComponent ts = new StringTextComponent(" ");
-                        ts.appendSibling(uses);
-                        uses = ts;
-                    }
-                    event.getToolTip().add(insert, uses);
+                    bld.append(I18n.format("tooltip.itemsdontbreak.item_info", adjustedDurability(stack, remaining)));
+
+                    event.getToolTip().add(insert, bld.toString());
                 }
             }
         }
