@@ -1,5 +1,6 @@
 package gigaherz.itemsdontbreak;
 
+import com.google.common.collect.EnumHashBiMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.gui.screen.Screen;
@@ -7,6 +8,8 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.item.ArmorItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
@@ -19,14 +22,25 @@ import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ExtensionPoint;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.network.FMLNetworkConstants;
+import org.apache.commons.lang3.tuple.Pair;
 
+import java.util.EnumMap;
 import java.util.List;
 
 @Mod(ItemsDontBreak.MODID)
 public class ItemsDontBreak
 {
     public static final String MODID = "itemsdontbreak";
+
+    public ItemsDontBreak()
+    {
+        //Make sure the mod being absent on the other network side does not cause the client to display the server as incompatible
+        ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.DISPLAYTEST, () -> Pair.of(() -> FMLNetworkConstants.IGNORESERVERONLY, (a, b) -> true));
+    }
 
     @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
     public static class ClientEvents
@@ -36,7 +50,7 @@ public class ItemsDontBreak
             return stack.isDamageable() && (stack.getDamage()+1) >= stack.getMaxDamage() && (!Screen.hasControlDown());
         }
 
-        private static ItemStack previousStack = ItemStack.EMPTY;
+        private static EnumMap<Hand, ItemStack> previousStacks = new EnumMap<>(Hand.class);
 
         public static int adjustedDurability(ItemStack stack, int remaining)
         {
@@ -56,6 +70,7 @@ public class ItemsDontBreak
             return MathHelper.floor(remaining * durability_coef);
         }
 
+
         @SubscribeEvent
         public static void cientTick(TickEvent.ClientTickEvent event)
         {
@@ -65,33 +80,43 @@ public class ItemsDontBreak
                 if (player == null || player.isCreative())
                     return;
 
-                ItemStack stack = player.getHeldItemMainhand();
-
-                if (!ItemStack.areItemStacksEqual(previousStack, stack))
+                boolean alreadySet = false;
+                for(Hand hand : Hand.values())
                 {
-                    previousStack = stack;
-                    if (stack.isDamageable())
+                    ItemStack stack = player.getHeldItem(hand);
+                    ItemStack previousStack = previousStacks.computeIfAbsent(hand, (key) -> ItemStack.EMPTY);
+
+                    if (!ItemStack.areItemStacksEqual(previousStack, stack))
                     {
-                        int remaining = stack.getMaxDamage() - stack.getDamage();
-                        int uses = adjustedDurability(stack, remaining);
-
-                        if(remaining <= 10 && uses <= 20)
+                        previousStacks.put(hand, stack);
+                        if (stack.isDamageable())
                         {
-                            TranslationTextComponent tc;
-                            if (isAboutToBreak(stack))
-                            {
-                                tc = new TranslationTextComponent("text.itemsdontbreak.item_info_disabled", remaining);
-                            }
-                            else if (EnchantmentHelper.getEnchantmentLevel(Enchantments.UNBREAKING, stack) > 0)
-                            {
-                                tc = new TranslationTextComponent("text.itemsdontbreak.item_info.unbreaking", remaining, uses);
-                            }
-                            else
-                            {
-                                tc = new TranslationTextComponent("text.itemsdontbreak.item_info.normal", remaining, uses);
-                            }
+                            int remaining = stack.getMaxDamage() - stack.getDamage();
+                            int uses = adjustedDurability(stack, remaining);
 
-                            Minecraft.getInstance().ingameGUI.setOverlayMessage(tc,false);
+                            if (remaining <= 10 && uses <= 20)
+                            {
+                                if (!alreadySet)
+                                {
+                                    alreadySet = true;
+
+                                    TranslationTextComponent tc;
+                                    if (isAboutToBreak(stack))
+                                    {
+                                        tc = new TranslationTextComponent("text.itemsdontbreak.item_info_disabled", remaining);
+                                    }
+                                    else if (EnchantmentHelper.getEnchantmentLevel(Enchantments.UNBREAKING, stack) > 0)
+                                    {
+                                        tc = new TranslationTextComponent("text.itemsdontbreak.item_info.unbreaking", remaining, uses);
+                                    }
+                                    else
+                                    {
+                                        tc = new TranslationTextComponent("text.itemsdontbreak.item_info.normal", remaining, uses);
+                                    }
+
+                                    Minecraft.getInstance().ingameGUI.setOverlayMessage(tc, false);
+                                }
+                            }
                         }
                     }
                 }
@@ -101,9 +126,9 @@ public class ItemsDontBreak
         @SubscribeEvent
         public static void itemInteractEvent(AttackEntityEvent event)
         {
-            if (event.getEntityPlayer().isCreative())
+            if (event.getPlayer().isCreative())
                 return;
-            ItemStack stack = event.getEntityPlayer().getHeldItemMainhand();
+            ItemStack stack = event.getPlayer().getHeldItemMainhand();
             if (isAboutToBreak(stack))
             {
                 event.setCanceled(true);
@@ -111,9 +136,22 @@ public class ItemsDontBreak
         }
 
         @SubscribeEvent
+        public static void itemInteractEvent(PlayerInteractEvent.RightClickItem event)
+        {
+            if (event.getPlayer().isCreative())
+                return;
+            ItemStack stack = event.getItemStack();
+            if (isAboutToBreak(stack) && isRightClickItem(stack))
+            {
+                event.setCanceled(true);
+                event.setCancellationResult(ActionResultType.PASS);
+            }
+        }
+
+        @SubscribeEvent
         public static void itemInteractEvent(PlayerInteractEvent.LeftClickBlock event)
         {
-            if (event.getEntityPlayer().isCreative())
+            if (event.getPlayer().isCreative())
                 return;
             ItemStack stack = event.getItemStack();
             if (isAboutToBreak(stack))
