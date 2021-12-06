@@ -67,7 +67,7 @@ minecraft {mappings channel: 'official', version: '1.17.1'
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.17.1-37.0.13'
+    minecraft 'net.minecraftforge:forge:1.17.1-37.0.78'
 }
 
 jar {

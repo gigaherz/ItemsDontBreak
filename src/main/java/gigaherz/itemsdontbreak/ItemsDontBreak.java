@@ -157,9 +157,8 @@ public class ItemsDontBreak
                     for(int i=0;i<tips.size();i++)
                     {
                         Component t = tips.get(i);
-                        if (t instanceof TranslatableComponent)
+                        if (t instanceof TranslatableComponent tt)
                         {
-                            TranslatableComponent tt = (TranslatableComponent)t;
                             if ("item.durability".equals(tt.getKey()))
                             {
                                 insert = i+1;
@@ -169,12 +168,10 @@ public class ItemsDontBreak
                             else if ("item.modifiers.mainhand".equals(tt.getKey()))
                             {
                                 insert = Math.min(insert, i);
-                                indent = false;
                             }
                             else if ("item.modifiers.offhand".equals(tt.getKey()))
                             {
                                 insert = Math.min(insert, i);
-                                indent = false;
                             }
                         }
                     }
