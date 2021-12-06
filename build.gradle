@@ -28,9 +28,9 @@ project.afterEvaluate {
     archivesBaseName = "ItemsDontBreak-${project.MC_VERSION}"
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(16)
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
-minecraft {mappings channel: 'official', version: '1.17.1'
+minecraft {mappings channel: 'official', version: '1.18'
 
 
     runs {
@@ -67,7 +67,7 @@ minecraft {mappings channel: 'official', version: '1.17.1'
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.17.1-37.0.78'
+    minecraft 'net.minecraftforge:forge:1.18-38.0.15'
 }
 
 jar {
