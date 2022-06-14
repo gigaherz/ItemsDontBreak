@@ -6,8 +6,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ArmorItem;
@@ -95,18 +94,18 @@ public class ItemsDontBreak
                                 {
                                     alreadySet = true;
 
-                                    TranslatableComponent tc;
+                                    MutableComponent tc;
                                     if (isAboutToBreak(stack))
                                     {
-                                        tc = new TranslatableComponent("text.itemsdontbreak.item_info_disabled", remaining);
+                                        tc = Component.translatable("text.itemsdontbreak.item_info_disabled", remaining);
                                     }
                                     else if (EnchantmentHelper.getItemEnchantmentLevel(Enchantments.UNBREAKING, stack) > 0)
                                     {
-                                        tc = new TranslatableComponent("text.itemsdontbreak.item_info.unbreaking", remaining, uses);
+                                        tc = Component.translatable("text.itemsdontbreak.item_info.unbreaking", remaining, uses);
                                     }
                                     else
                                     {
-                                        tc = new TranslatableComponent("text.itemsdontbreak.item_info.normal", remaining, uses);
+                                        tc = Component.translatable("text.itemsdontbreak.item_info.normal", remaining, uses);
                                     }
 
                                     Minecraft.getInstance().gui.setOverlayMessage(tc, false);
@@ -129,7 +128,7 @@ public class ItemsDontBreak
             {
                 event.setCanceled(true);
                 event.setSwingHand(false);
-                Minecraft.getInstance().gui.setOverlayMessage(new TranslatableComponent("text.itemsdontbreak.action_prevented"), false);
+                Minecraft.getInstance().gui.setOverlayMessage(Component.translatable("text.itemsdontbreak.action_prevented"), false);
             }
         }
 
@@ -145,8 +144,8 @@ public class ItemsDontBreak
                 {
                     int insert = Math.min(tips.size(),1);
 
-                    TranslatableComponent br = new TranslatableComponent("tooltip.itemsdontbreak.item_broken");
-                    br.withStyle(ChatFormatting.RED, ChatFormatting.BOLD, ChatFormatting.ITALIC);
+                    MutableComponent br = Component.translatable("tooltip.itemsdontbreak.item_broken");
+                    br = br.withStyle(ChatFormatting.RED, ChatFormatting.BOLD, ChatFormatting.ITALIC);
                     event.getToolTip().add(insert, br);
                 }
                 else //if (event.getFlags() == ITooltipFlag.TooltipFlags.ADVANCED)
@@ -155,34 +154,37 @@ public class ItemsDontBreak
                     int insert = tips.size();
                     for(int i=0;i<tips.size();i++)
                     {
-                        Component t = tips.get(i);
-                        if (t instanceof TranslatableComponent tt)
+                        Component line = tips.get(i);
+                        if (line instanceof MutableComponent mutable)
                         {
-                            if ("item.durability".equals(tt.getKey()))
+                            if (mutable.getContents() instanceof TranslatableContents translatable)
                             {
-                                insert = i+1;
-                                indent = true;
-                                break;
-                            }
-                            else if ("item.modifiers.mainhand".equals(tt.getKey()))
-                            {
-                                insert = Math.min(insert, i);
-                            }
-                            else if ("item.modifiers.offhand".equals(tt.getKey()))
-                            {
-                                insert = Math.min(insert, i);
+                                if ("item.durability".equals(translatable.getKey()))
+                                {
+                                    insert = i + 1;
+                                    indent = true;
+                                    break;
+                                }
+                                else if ("item.modifiers.mainhand".equals(translatable.getKey()))
+                                {
+                                    insert = Math.min(insert, i);
+                                }
+                                else if ("item.modifiers.offhand".equals(translatable.getKey()))
+                                {
+                                    insert = Math.min(insert, i);
+                                }
                             }
                         }
                     }
 
                     int remaining = stack.getMaxDamage() - stack.getDamageValue();
 
-                    MutableComponent uses = new TranslatableComponent("tooltip.itemsdontbreak.item_info", adjustedDurability(stack, remaining));
+                    MutableComponent uses = Component.translatable("tooltip.itemsdontbreak.item_info", adjustedDurability(stack, remaining));
                     uses.withStyle(ChatFormatting.ITALIC, ChatFormatting.GRAY);
 
                     if (indent)
                     {
-                        TextComponent ts = new TextComponent(" ");
+                        var ts = Component.literal(" ");
                         ts.append(uses);
                         uses = ts;
                     }

@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="[38,)"
+loaderVersion="[41,)"
 license="BSD (3 clause)"
 issueTrackerURL="https://github.com/gigaherz/ItemsDontBreak/issues"
 
@@ -17,13 +17,13 @@ displayURL="https://github.com/gigaherz/ItemsDontBreak"
 [[dependencies.itemsdontbreak]] #optional
     modId="forge" #mandatory
     mandatory=true #mandatory
-    versionRange="[38.0.15,)" #mandatory
+    versionRange="[41.0.17,)" #mandatory
     ordering="NONE"
     side="BOTH"
 
 [[dependencies.itemsdontbreak]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.18,1.19)"
+    versionRange="[1.19,1.20)"
     ordering="NONE"
     side="BOTH"
