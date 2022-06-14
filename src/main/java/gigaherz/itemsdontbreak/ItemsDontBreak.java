@@ -129,6 +129,7 @@ public class ItemsDontBreak
             {
                 event.setCanceled(true);
                 event.setSwingHand(false);
+                Minecraft.getInstance().gui.setOverlayMessage(new TranslatableComponent("text.itemsdontbreak.action_prevented"), false);
             }
         }
 

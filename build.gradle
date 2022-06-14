@@ -20,7 +20,7 @@ repositories {
     }
 }
 
-version = '0.4.0'
+version = '0.5.1'
 group = 'gigaherz.itemsdontbreak' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "ItemsDontBreak-UNKNOWN"
 
@@ -30,8 +30,8 @@ project.afterEvaluate {
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
-minecraft {mappings channel: 'official', version: '1.18'
-
+minecraft {
+    mappings channel: 'official', version: '1.18.2'
 
     runs {
         client {
@@ -67,7 +67,7 @@ minecraft {mappings channel: 'official', version: '1.18'
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.18-38.0.15'
+    minecraft 'net.minecraftforge:forge:1.18.2-40.0.3'
 }
 
 jar {

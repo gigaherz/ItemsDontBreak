@@ -1,20 +1,18 @@
 modLoader="javafml"
 loaderVersion="[38,)"
 license="BSD (3 clause)"
+issueTrackerURL="https://github.com/gigaherz/ItemsDontBreak/issues"
 
 [[mods]] #mandatory
 modId="itemsdontbreak"
 version="${file.jarVersion}"
 displayName="Items Don't Break"
 logoFile="logo.png"
-credits="Thanks for this example mod goes to Java"
 authors="gigaherz"
 description='''
 Warns of remaining item uses, and prevents using an item when it reaches 0 durability
 '''
 displayURL="https://github.com/gigaherz/ItemsDontBreak"
-issueTrackerURL="https://github.com/gigaherz/ItemsDontBreak/issues"
-#updateJSONURL="http://myurl.me/" #optional
 
 [[dependencies.itemsdontbreak]] #optional
     modId="forge" #mandatory
