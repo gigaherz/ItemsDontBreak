@@ -118,7 +118,7 @@ public class ItemsDontBreak
         }
 
         @SubscribeEvent
-        public static void rightClick(InputEvent.ClickInputEvent event)
+        public static void rightClick(InputEvent.InteractionKeyMappingTriggered event)
         {
             LocalPlayer player = Minecraft.getInstance().player;
             if (player == null || player.isCreative())

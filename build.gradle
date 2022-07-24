@@ -20,7 +20,7 @@ repositories {
     }
 }
 
-version = '0.6.0'
+version = '0.7.0'
 group = 'gigaherz.itemsdontbreak' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "ItemsDontBreak-UNKNOWN"
 
@@ -67,7 +67,7 @@ minecraft {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.19-41.0.22'
+    minecraft 'net.minecraftforge:forge:1.19-41.0.110'
 }
 
 jar {
